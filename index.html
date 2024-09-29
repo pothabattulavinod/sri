@@ -38,19 +38,6 @@
         .jw-rightclick .jw-reset {
             display: none;
         }
-
-        /* Zoom effect for Full HD videos */
-        .zoomed {
-            transform: scale(1.2);
-            transition: transform 0.3s ease;
-            transform-origin: center center; /* Ensure scaling is centered */
-        }
-
-        .jw-video {
-            width: 100%;
-            height: 100%;
-            transition: transform 0.3s ease; /* Smooth transition for zoom */
-        }
     </style>
 </head>
 
@@ -63,97 +50,79 @@
             var playerInstance = jwplayer("player");
 
             var hdUrls = [
-                { file: "https://linksshortner.xyz/AgADTg261903?&.MP4" },
-                { file: "https://file-to-link-nx-b8f69ee9ae53.herokuapp.com/dl/66f80b2af72831b3553eeaf7?&.MP4" },
-                { file: "https://www.tgxlink.workers.dev/dl/66f80b2d6bda1fcc340b9f4f?&.MP4" },
-                { file: "https://www.tg-x-server4.workers.dev/v2/AgADTg47475?&.MP4" },
-                { file: "https://tg-movies4u.tgmkvofcl.workers.dev/596451?hash=AgADTg&?.MP4" },
-                { file: "https://go.springsfern.in/dl/839706?&.MP4" },
-                { file: "https://get4me.koyeb.app/411322?&.MP4" },
-                { file: "https://file-streamx-697cdb6409cc.herokuapp.com/178255?hash=AgADTg&m=1?hash=undefined?&.MP4" }
+                { file: "https://linksshortner.xyz/AgADTg261903?&.MP4", type: "video/mp4" },
+                { file: "https://file-to-link-nx-b8f69ee9ae53.herokuapp.com/dl/66f80b2af72831b3553eeaf7?&.MP4", type: "video/mp4" },
+                { file: "https://www.tgxlink.workers.dev/dl/66f80b2d6bda1fcc340b9f4f?&.MP4", type: "video/mp4" },
+                { file: "https://www.tg-x-server4.workers.dev/v2/AgADTg47475?&.MP4", type: "video/mp4" },
+                { file: "https://tg-movies4u.tgmkvofcl.workers.dev/596451?hash=AgADTg&?.MP4", type: "video/mp4" },
+                { file: "https://go.springsfern.in/dl/839706?&.MP4", type: "video/mp4" },
+                { file: "https://get4me.koyeb.app/411322?&.MP4", type: "video/mp4" },
+                { file: "https://file-streamx-697cdb6409cc.herokuapp.com/178255?hash=AgADTg&m=1?hash=undefined?&.MP4", type: "video/mp4" }
             ];
 
-            var fullHdUrls = [
-                { file: "https://www.tgxlink.workers.dev/dl/66f8d3c0eceae511688a3f2b?&.MP4" },
-                { file: "https://linksshortner.xyz/AgADUQ272754?&.MP4" },
-                { file: "https://file-to-link-nx-b8f69ee9ae53.herokuapp.com/dl/66f8d3c0f72831b3553ef757?&.MP4" },
-                { file: "https://www.tg-x-server1.workers.dev/v2/AgADUQ50788?&.MP4" },
-                { file: "https://tg-movies4u.tgmkvofcl.workers.dev/599418?hash=AgADUQ?&.MP4" },
-                { file: "https://file-streamx-697cdb6409cc.herokuapp.com/181142?hash=AgADUQ&m=1?hash=undefined?&.MP4" },
-                { file: "https://go.springsfern.in/dl/842129?&.MP4" }
-            ];
+            function checkUrl(url) {
+                return new Promise((resolve) => {
+                    var video = document.createElement('video');
+                    video.src = url;
+                    video.preload = 'metadata';
 
-            var currentHdIndex = 0;
-            var currentFullHdIndex = 0;
+                    video.onerror = function () {
+                        resolve(false);
+                    };
 
-            // Function to play the next HD URL if one fails
-            function switchToNextHdUrl() {
-                currentHdIndex++;
-                if (currentHdIndex < hdUrls.length) {
-                    console.log("Switching to next HD URL.");
-                    playerInstance.load([{ file: hdUrls[currentHdIndex].file, label: "HD" }]);
-                    playerInstance.play();
-                } else {
-                    console.log("All HD URLs have failed.");
-                }
+                    video.onloadedmetadata = function () {
+                        resolve(true);
+                    };
+                });
             }
 
-            // Function to play the next Full HD URL if one fails
-            function switchToNextFullHdUrl() {
-                currentFullHdIndex++;
-                if (currentFullHdIndex < fullHdUrls.length) {
-                    console.log("Switching to next Full HD URL.");
-                    playerInstance.load([{ file: fullHdUrls[currentFullHdIndex].file, label: "Full HD" }]);
-                    playerInstance.play();
-                } else {
-                    console.log("All Full HD URLs have failed.");
+            async function findBestWorkingUrl() {
+                for (var i = 0; i < hdUrls.length; i++) {
+                    var isWorking = await checkUrl(hdUrls[i].file);
+                    if (isWorking) {
+                        console.log("Switching to working URL: " + hdUrls[i].file);
+                        playerInstance.load([{ file: hdUrls[i].file, label: "HD" }]);
+                        playerInstance.play();
+                        return; // Exit once a working URL is found
+                    }
                 }
+                console.log("No working URLs available.");
             }
 
-            // Set up JW Player with HD and Full HD labels
             playerInstance.setup({
                 aspectratio: "16:9",
                 preload: 'auto',
                 primary: 'html5',
-                sources: [
-                    { file: hdUrls[currentHdIndex].file, label: "HD" },
-                    { file: fullHdUrls[currentFullHdIndex].file, label: "Full HD" }
-                ],
-                tracks: [
-                    {
-                        file: "https://raw.githubusercontent.com/pothabattulavinod/Ss/refs/heads/main/Saripodhaa%20Sanivaaram.vtt",
-                        label: "English",
-                        kind: "captions",
-                        default: true
-                    }
-                ],
-                captions: {
-                    backgroundOpacity: 0,
-                    edgeStyle: "raised"
-                },
+                file: hdUrls[0].file,
                 width: '100%',
                 height: '100%',
                 controls: true,
                 displayPlaybackLabel: true,
+                autostart: false,  // Disable autoplay for Safari
+                mute: false,       // Ensure audio is not muted
+                tracks: [{
+                    file: "https://raw.githubusercontent.com/pothabattulavinod/Ss/refs/heads/main/Saripodhaa%20Sanivaaram.vtt",
+                    label: "English",
+                    kind: "captions",
+                    default: true
+                }],
+                captions: {
+                    backgroundOpacity: 0,
+                    edgeStyle: "raised"
+                },
                 advertising: {
                     client: "vast",
-                    schedule: [
-                        { offset: "pre", tag: "" }
-                    ]
+                    schedule: [{ offset: "pre", tag: "" }]
                 }
             });
 
-            // Handle player errors for HD
             playerInstance.on('error', function () {
-                console.log("Error occurred, switching to the next available HD or Full HD URL.");
-                if (playerInstance.getCurrentQuality() === 0) {
-                    switchToNextHdUrl();  // Try next HD URL
-                } else {
-                    switchToNextFullHdUrl();  // Try next Full HD URL
-                }
+                console.log("Error occurred, finding the next working URL.");
+                findBestWorkingUrl();
             });
 
-            // Add custom forward button (optional)
+            findBestWorkingUrl();
+
             playerInstance.on('ready', function () {
                 var lastTimeKey = 'jwplayer-last-time';
                 var lastTime = localStorage.getItem(lastTimeKey);
@@ -172,41 +141,11 @@
             });
 
             playerInstance.on('pause', function () {
-                var lastTimeKey = 'jwplayer-last-time';
-                localStorage.setItem(lastTimeKey, playerInstance.getPosition());
+                localStorage.setItem('jwplayer-last-time', playerInstance.getPosition());
             });
 
             playerInstance.on('complete', function () {
-                var lastTimeKey = 'jwplayer-last-time';
-                localStorage.setItem(lastTimeKey, 0);
-            });
-
-            // Add event listener for quality change
-            playerInstance.on('qualityChange', function (event) {
-                var videoElement = document.querySelector('.jw-video');
-
-                // Check if Full HD is selected
-                if (event.level === 1) { // Full HD
-                    videoElement.classList.add('zoomed'); // Apply zoom effect
-                } else { // HD
-                    videoElement.classList.remove('zoomed'); // Remove zoom effect
-                }
-            });
-
-            // Handle fullscreen events
-            playerInstance.on('fullscreen', function () {
-                var videoElement = document.querySelector('.jw-video');
-                
-                // Apply zoom only if Full HD is selected
-                if (playerInstance.getCurrentQuality() === 1) { // Full HD
-                    videoElement.classList.add('zoomed'); // Apply zoom
-                }
-            });
-
-            playerInstance.on('fullscreenExit', function () {
-                var videoElement = document.querySelector('.jw-video');
-                // Remove zoom when exiting fullscreen
-                videoElement.classList.remove('zoomed');
+                localStorage.setItem('jwplayer-last-time', 0);
             });
         });
     </script>
