@@ -1,58 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>JW Player Example</title>
+
     <!-- JW Player script -->
     <script src="https://ssl.p.jwpcdn.com/player/v/8.22.0/jwplayer.js"></script>
     <!-- JW Player license key -->
-    <script>jwplayer.key='EN7MpaKagehNwodFmcDG3/k/QCMXIo8qyzO5Fi+Bxq0=';</script>
+    <script>jwplayer.key = 'EN7MpaKagehNwodFmcDG3/k/QCMXIo8qyzO5Fi+Bxq0=';</script>
+
     <style>
         body {
             margin: 0;
             overflow: hidden;
         }
+
         #player {
             width: 100% !important;
             height: 100% !important;
         }
+
         .jwplayer .jw-progress {
             background-color: #FF0000;
         }
+
         button:hover {
             background: #FF0000 !important;
         }
+
         .jw-icon-forward {
             background: url('https://www.kindpng.com/picc/b/79-797059_forward-icon-png.png') no-repeat center center;
             background-size: 100%;
         }
-        .jw-video {
-            transform: scale(1.2);
-        }
+
         /* Hide the reset option in the right-click menu */
         .jw-rightclick .jw-reset {
             display: none;
         }
     </style>
 </head>
+
 <body>
+
     <div id="player"></div>
+
     <script type="text/javascript">
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             var playerInstance = jwplayer("player");
 
+            // Define multiple URLs for the same video
+            var videoUrls = [
+                { file: "https://linksshortner.xyz/AgADTg261903?&.MP4", label: "URL 1" },
+                { file: "https://file-to-link-nx-b8f69ee9ae53.herokuapp.com/dl/66f80b2af72831b3553eeaf7?&.MP4", label: "URL 2" },
+                { file: "https://www.tgxlink.workers.dev/dl/66f80b2d6bda1fcc340b9f4f?&.MP4", label: "URL 3" },
+                { file: "https://www.tg-x-server4.workers.dev/v2/AgADTg47475?&.MP4", label: "URL 4" },
+                { file: "https://tg-movies4u.tgmkvofcl.workers.dev/596451?hash=AgADTg&?.MP4", label: "URL 5" },
+                { file: "https://go.springsfern.in/dl/839706/Saripodhaa%20Sanivaaram%20(2024)%20Telugu%20HQ%20HDRip%20-%201080p%20-%20HEVC%20.mkv&?.MP4", label: "URL 6" },
+                { file: "https://go.springsfern.in/dl/839706?&.MP4", label: "URL 7" }
+            ];
+
+            var currentUrlIndex = 0;
+
+            // Function to switch to the next URL if an error occurs or buffering is detected
+            function switchToNextUrl() {
+                currentUrlIndex++;
+                if (currentUrlIndex < videoUrls.length) {
+                    console.log("Switching to: " + videoUrls[currentUrlIndex].label);
+                    playerInstance.load([{ file: videoUrls[currentUrlIndex].file }]);
+                    playerInstance.play();
+                } else {
+                    console.log("All URLs have failed.");
+                }
+            }
+
+            // Set up JW Player with the first URL and continuous play
             playerInstance.setup({
                 aspectratio: "16:9",
-                preload: 'none',
+                preload: 'auto',  // Preload the video to reduce buffering
                 primary: 'html5',
-                type: 'mp4',
-                sources: [
-                    { file: "https://mzaalombr.pc.cdn.bitgravity.com/mzaalombr/output/Srimanthudu-Telugu/2600k/HLS/Srimanthudu-Telugu_2600k.m3u8", label: "HD" },
-                ],
+                sources: videoUrls,  // Add all URLs to the sources for continuous play
                 tracks: [
                     {
-                        file: "https://zeta.rf.gd/wp-content/uploads/2024/09/srimanthudu-2016-telugu-720p-hdrip-x264-1.4gb-esubs.vtt",
+                        file: "https://raw.githubusercontent.com/pothabattulavinod/Ss/refs/heads/main/Saripodhaa%20Sanivaaram.vtt",
                         label: "English",
                         kind: "captions",
                         default: true
@@ -69,14 +99,26 @@
                 advertising: {
                     client: "vast",
                     schedule: [
-                        { offset: "pre", tag: "" },
+                        { offset: "pre", tag: "" }
                     ]
                 }
             });
 
-            var lastTimeKey = 'jwplayer-last-time';
+            // Handle player errors and switch to the next available URL
+            playerInstance.on('error', function () {
+                console.log("Error occurred, switching to the next available URL.");
+                switchToNextUrl();
+            });
 
-            playerInstance.on('ready', function() {
+            // Detect buffering and switch immediately to the next URL
+            playerInstance.on('buffer', function () {
+                console.log("Buffering detected, switching to next URL...");
+                switchToNextUrl();
+            });
+
+            // Add custom forward button (optional)
+            playerInstance.on('ready', function () {
+                var lastTimeKey = 'jwplayer-last-time';
                 var lastTime = localStorage.getItem(lastTimeKey);
                 if (lastTime) {
                     playerInstance.seek(parseFloat(lastTime));
@@ -85,21 +127,24 @@
                 playerInstance.addButton(
                     'https://www.kindpng.com/picc/b/79-797059_forward-icon-png.png',
                     'Forward 10 seconds',
-                    function() {
+                    function () {
                         playerInstance.seek(playerInstance.getPosition() + 10);
                     },
                     'forward10'
                 );
             });
 
-            playerInstance.on('pause', function() {
+            playerInstance.on('pause', function () {
+                var lastTimeKey = 'jwplayer-last-time';
                 localStorage.setItem(lastTimeKey, playerInstance.getPosition());
             });
 
-            playerInstance.on('complete', function() {
+            playerInstance.on('complete', function () {
+                var lastTimeKey = 'jwplayer-last-time';
                 localStorage.setItem(lastTimeKey, 0);
             });
         });
     </script>
 </body>
+
 </html>
