@@ -1,152 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-
-    <!-- JW Player script -->
-    <script src="https://ssl.p.jwpcdn.com/player/v/8.22.0/jwplayer.js"></script>
-    <!-- JW Player license key -->
-    <script>jwplayer.key = 'EN7MpaKagehNwodFmcDG3/k/QCMXIo8qyzO5Fi+Bxq0=';</script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Scraper</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-        }
-
-        #player {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        .jwplayer .jw-progress {
-            background-color: #FF0000;
-        }
-
-        button:hover {
-            background: #FF0000 !important;
-        }
-
-        .jw-icon-forward {
-            background: url('https://www.kindpng.com/picc/b/79-797059_forward-icon-png.png') no-repeat center center;
-            background-size: 100%;
-        }
-
-        /* Hide the reset option in the right-click menu */
-        .jw-rightclick .jw-reset {
-            display: none;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; }
+        input, button { padding: 10px; margin: 10px; }
+        #result { margin-top: 20px; white-space: pre-wrap; text-align: left; }
+        .checkbox-container { text-align: left; margin-top: 10px; }
     </style>
 </head>
-
 <body>
-
-    <div id="player"></div>
-
-    <script type="text/javascript">
-        document.addEventListener("DOMContentLoaded", function () {
-            var playerInstance = jwplayer("player");
-
-            var hdUrls = [
-                { file: "https://linksshortner.xyz/AgADTg261903?&.MP4" },
-                { file: "https://file-to-link-nx-b8f69ee9ae53.herokuapp.com/dl/66f80b2af72831b3553eeaf7?&.MP4" },
-                { file: "https://www.tgxlink.workers.dev/dl/66f80b2d6bda1fcc340b9f4f?&.MP4" },
-                { file: "https://www.tg-x-server4.workers.dev/v2/AgADTg47475?&.MP4" },
-                { file: "https://tg-movies4u.tgmkvofcl.workers.dev/596451?hash=AgADTg&?.MP4" },
-                { file: "https://go.springsfern.in/dl/839706?&.MP4" },
-                { file: "https://get4me.koyeb.app/411322?&.MP4" },
-                { file: "https://file-streamx-697cdb6409cc.herokuapp.com/178255?hash=AgADTg&m=1?hash=undefined?&.MP4" }
-            ];
-
-            function checkUrl(url) {
-                return new Promise((resolve) => {
-                    var video = document.createElement('video');
-                    video.src = url;
-                    video.preload = 'metadata';
-
-                    video.onerror = function () {
-                        resolve(false);
-                    };
-
-                    video.onloadedmetadata = function () {
-                        resolve(true);
-                    };
-                });
+    <h1>Data Scraper</h1>
+    <input type="file" id="fileInput" accept=".pdf,.docx,.txt">
+    <button onclick="extractText()">Extract Data</button>
+    <div class="checkbox-container" id="selectionArea"></div>
+    <button onclick="downloadSelected()">Download Selected Data</button>
+    <pre id="result"></pre>
+    
+    <script>
+        async function extractText() {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) {
+                alert('Please select a file.');
+                return;
             }
-
-            async function findBestWorkingUrl() {
-                for (var i = 0; i < hdUrls.length; i++) {
-                    var isWorking = await checkUrl(hdUrls[i].file);
-                    if (isWorking) {
-                        console.log("Switching to working URL: " + hdUrls[i].file);
-                        playerInstance.load([{ file: hdUrls[i].file, label: "HD" }]);
-                        playerInstance.play();
-                        return; // Exit once a working URL is found
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            const resultElement = document.getElementById('result');
+            
+            if (file.name.endsWith('.pdf')) {
+                reader.onload = async function () {
+                    const pdfData = new Uint8Array(reader.result);
+                    const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+                    let text = '';
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        let page = await pdf.getPage(i);
+                        let content = await page.getTextContent();
+                        text += content.items.map(item => item.str).join(' ') + '\n';
                     }
-                }
-                console.log("No working URLs available.");
+                    displayExtractedData(text);
+                };
+                reader.readAsArrayBuffer(file);
+            } else if (file.name.endsWith('.docx')) {
+                reader.onload = function () {
+                    mammoth.extractRawText({ arrayBuffer: reader.result })
+                        .then(function (result) {
+                            displayExtractedData(result.value.trim());
+                        });
+                };
+                reader.readAsArrayBuffer(file);
+            } else if (file.name.endsWith('.txt')) {
+                reader.onload = function () {
+                    displayExtractedData(reader.result.trim());
+                };
+                reader.readAsText(file);
+            } else {
+                alert('Unsupported file format. Use PDF, DOCX, or TXT.');
             }
+        }
 
-            playerInstance.setup({
-                aspectratio: "16:9",
-                preload: 'auto',
-                primary: 'html5',
-                file: hdUrls[0].file,
-                width: '100%',
-                height: '100%',
-                controls: true,
-                displayPlaybackLabel: true,
-                tracks: [{
-                    file: "https://raw.githubusercontent.com/pothabattulavinod/Ss/refs/heads/main/Saripodhaa%20Sanivaaram.vtt",
-                    label: "English",
-                    kind: "captions",
-                    default: true
-                }],
-                captions: {
-                    backgroundOpacity: 0,
-                    edgeStyle: "raised"
-                },
-                advertising: {
-                    client: "vast",
-                    schedule: [{ offset: "pre", tag: "" }]
-                }
+        function displayExtractedData(text) {
+            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+            const phoneRegex = /\b\d{10}\b|\(\d{3}\) \d{3}-\d{4}/g;
+            const dateRegex = /\b\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}\b/g;
+            
+            const emails = text.match(emailRegex) || [];
+            const phones = text.match(phoneRegex) || [];
+            const dates = text.match(dateRegex) || [];
+            
+            const resultElement = document.getElementById('result');
+            resultElement.textContent = text;
+            
+            const selectionArea = document.getElementById('selectionArea');
+            selectionArea.innerHTML = '';
+            
+            [...emails, ...phones, ...dates].forEach(item => {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = item;
+                checkbox.checked = true;
+                selectionArea.appendChild(checkbox);
+                selectionArea.appendChild(document.createTextNode(item));
+                selectionArea.appendChild(document.createElement('br'));
             });
+        }
 
-            playerInstance.on('error', function () {
-                console.log("Error occurred, finding the next working URL.");
-                findBestWorkingUrl();
-            });
-
-            findBestWorkingUrl();
-
-            playerInstance.on('ready', function () {
-                var lastTimeKey = 'jwplayer-last-time';
-                var lastTime = localStorage.getItem(lastTimeKey);
-                if (lastTime) {
-                    playerInstance.seek(parseFloat(lastTime));
-                }
-
-                playerInstance.addButton(
-                    'https://www.kindpng.com/picc/b/79-797059_forward-icon-png.png',
-                    'Forward 10 seconds',
-                    function () {
-                        playerInstance.seek(playerInstance.getPosition() + 10);
-                    },
-                    'forward10'
-                );
-            });
-
-            playerInstance.on('pause', function () {
-                localStorage.setItem('jwplayer-last-time', playerInstance.getPosition());
-            });
-
-            playerInstance.on('complete', function () {
-                localStorage.setItem('jwplayer-last-time', 0);
-            });
-        });
+        function downloadSelected() {
+            const checkboxes = document.querySelectorAll('#selectionArea input[type=checkbox]:checked');
+            let selectedData = Array.from(checkboxes).map(cb => cb.value).join('\n');
+            if (!selectedData) {
+                alert('No data selected!');
+                return;
+            }
+            const blob = new Blob([selectedData], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'selected_data.txt';
+            a.click();
+        }
     </script>
 </body>
-
 </html>
