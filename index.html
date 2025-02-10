@@ -30,7 +30,6 @@
             }
             const file = fileInput.files[0];
             const reader = new FileReader();
-            const resultElement = document.getElementById('result');
             
             if (file.name.endsWith('.pdf')) {
                 reader.onload = async function () {
@@ -64,29 +63,35 @@
         }
 
         function displayExtractedData(text) {
-            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-            const phoneRegex = /\b\d{10}\b|\(\d{3}\) \d{3}-\d{4}/g;
-            const dateRegex = /\b\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}\b/g;
+            const nameRegex = /Name:\s*([A-Za-z\s]+)/i;
+            const orderDateRegex = /Order Date:\s*([\d\/\-]+)/i;
+            const billingAddressRegex = /Billing Address:\s*([A-Za-z0-9,\s]+)/i;
+            const grandTotalRegex = /Grand Total:\s*([\d,.]+)/i;
             
-            const emails = text.match(emailRegex) || [];
-            const phones = text.match(phoneRegex) || [];
-            const dates = text.match(dateRegex) || [];
+            const nameMatch = text.match(nameRegex);
+            const orderDateMatch = text.match(orderDateRegex);
+            const billingAddressMatch = text.match(billingAddressRegex);
+            const grandTotalMatch = text.match(grandTotalRegex);
             
-            const resultElement = document.getElementById('result');
-            resultElement.textContent = text;
+            const extractedData = {
+                "Name": nameMatch ? nameMatch[1].trim() : "Not found",
+                "Order Date": orderDateMatch ? orderDateMatch[1].trim() : "Not found",
+                "Billing Address": billingAddressMatch ? billingAddressMatch[1].trim() : "Not found",
+                "Grand Total": grandTotalMatch ? grandTotalMatch[1].trim() : "Not found"
+            };
             
             const selectionArea = document.getElementById('selectionArea');
             selectionArea.innerHTML = '';
             
-            [...emails, ...phones, ...dates].forEach(item => {
+            for (const [key, value] of Object.entries(extractedData)) {
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
-                checkbox.value = item;
+                checkbox.value = `${key}: ${value}`;
                 checkbox.checked = true;
                 selectionArea.appendChild(checkbox);
-                selectionArea.appendChild(document.createTextNode(item));
+                selectionArea.appendChild(document.createTextNode(`${key}: ${value}`));
                 selectionArea.appendChild(document.createElement('br'));
-            });
+            }
         }
 
         function downloadSelected() {
