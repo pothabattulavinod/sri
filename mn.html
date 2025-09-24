@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Secure HLS Player</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+  <h2>Mahavatar Narsimha</h2>
+  <video id="video" controls width="640" height="360"></video>
+
+  <script>
+    // Base64-encoded .m3u8 URL (masked)
+    const maskedUrl = "aHR0cHM6Ly9wb3RoYWJhdHR1bGF2aW5vZC5naXRodWIuaW8vcy9NYWhhdmF0YXJfTmFyc2ltaGEvdmlkZW8ubTN1OGU=";
+
+    // Decode Base64 to get real URL
+    const videoUrl = atob(maskedUrl);
+
+    // Initialize HLS.js
+    const video = document.getElementById('video');
+    if(Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(videoUrl);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function() {
+        video.play();
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Fallback for Safari/iOS
+      video.src = videoUrl;
+      video.addEventListener('loadedmetadata', function() {
+        video.play();
+      });
+    }
+  </script>
+</body>
+</html>
